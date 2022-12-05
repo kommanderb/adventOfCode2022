@@ -5,21 +5,16 @@ import (
 	"os"
 	"strconv"
 	"strings"
-)
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
+	"kommanderb/utils"
+)
 
 func main() {
 	content, err := os.ReadFile("./input.txt")
 
-	check(err)
+	utils.CheckError(err)
 
 	strContent := string(content)
-	// fmt.Println(strContent)
 
 	lines := strings.Split(strContent, "\n")
 
@@ -61,7 +56,7 @@ func computeTopThree(topThreeMaxCalories []int, caloriesAccumulator int) []int {
 
 func accumulateCalories(line string, caloriesAccumulator int) int {
 	calories, err := strconv.Atoi(line)
-	check(err)
+	utils.CheckError(err)
 	caloriesAccumulator = caloriesAccumulator + calories
 
 	return caloriesAccumulator

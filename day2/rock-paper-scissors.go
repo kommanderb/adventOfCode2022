@@ -18,7 +18,7 @@ func standardizeHandShape(nonStandard string) string {
 	}
 
 	if len(standardShape) == 0 {
-		panic("Undefined standard shape!")
+		panic(fmt.Errorf("undefined standard shape! %s", nonStandard))
 	}
 
 	return standardShape
@@ -38,18 +38,32 @@ func getScoreForShape(handShape string) int {
 	return 0
 }
 
-func getShapeToWinWithHandShape(handShape string) string {
+func getShapeToLoseAgainstHandShape(standardHandShape string) string {
 	var loosingHandShape = ""
 
-	if handShape == "R" {
+	if standardHandShape == "R" {
 		loosingHandShape = "S"
-	} else if handShape == "P" {
+	} else if standardHandShape == "P" {
 		loosingHandShape = "R"
-	} else if handShape == "S" {
+	} else if standardHandShape == "S" {
 		loosingHandShape = "P"
 	}
 
 	return loosingHandShape
+}
+
+func getShapeToWinAgainstHandShape(standardHandShape string) string {
+	var winningHandShape = ""
+
+	if standardHandShape == "R" {
+		winningHandShape = "P"
+	} else if standardHandShape == "P" {
+		winningHandShape = "S"
+	} else if standardHandShape == "S" {
+		winningHandShape = "R"
+	}
+
+	return winningHandShape
 }
 
 func isDraw(standardHandShape string, standardOpponentHandShape string) bool {
@@ -60,29 +74,58 @@ func isStandardShape(handShape string) bool {
 	return (handShape == "R" || handShape == "P" || handShape == "S")
 }
 
-func getScore(handShape string, opponentHandShape string) int {
-
-	if !isStandardShape(handShape) {
-		handShape = standardizeHandShape(handShape)
-	}
+func getScore(opponentHandShape string, handShape string) int {
 
 	if !isStandardShape(opponentHandShape) {
+		fmt.Println("opponent shape is not standard")
 		opponentHandShape = standardizeHandShape(opponentHandShape)
 	}
 
+	if !isStandardShape(handShape) {
+		fmt.Println("hand shape is not standard")
+		handShape = standardizeHandShape(handShape)
+	}
+
+	// fmt.Println(opponentHandShape, "against", handShape)
+
 	var roundScore = 0
 
-	if isDraw(handShape, opponentHandShape) {
+	if isDraw(opponentHandShape, handShape) {
 		roundScore = 3
-	} else if opponentHandShape == getShapeToWinWithHandShape(handShape) {
+	} else if opponentHandShape == getShapeToLoseAgainstHandShape(handShape) {
 		roundScore = 6
 	}
 
 	return roundScore + getScoreForShape(handShape)
 }
 
+func getOutcome(opponentHandShape string, outCome string) int {
+	if !isStandardShape(opponentHandShape) {
+		opponentHandShape = standardizeHandShape(opponentHandShape)
+	}
+
+	var handShape = ""
+
+	if outCome == "X" {
+		// lose against handShape
+		handShape = getShapeToLoseAgainstHandShape(opponentHandShape)
+	} else if outCome == "Y" {
+		// draw against handShape
+		handShape = opponentHandShape
+	} else if outCome == "Z" {
+		// win against handShape
+		handShape = getShapeToWinAgainstHandShape(opponentHandShape)
+	}
+
+	if len(handShape) == 0 {
+		panic(fmt.Errorf("unhandled outcome! %s", outCome))
+	}
+
+	return getScore(opponentHandShape, handShape)
+}
+
 func main() {
-	inputLines := utils.IngestInputFile("./test.txt")
+	inputLines := utils.IngestInputFile("./input.txt")
 
 	var scoreAccumulator = 0
 	for linesIndex := 0; linesIndex < len(inputLines); linesIndex++ {
@@ -92,7 +135,8 @@ func main() {
 
 		parts := strings.Split(inputLines[linesIndex], " ")
 
-		roundScore := getScore(parts[1], parts[0])
+		// roundScore := getScore(parts[0], parts[1])
+		roundScore := getOutcome(parts[0], parts[1])
 		fmt.Println("Round #", linesIndex+1, "score:", roundScore)
 
 		scoreAccumulator = scoreAccumulator + roundScore
